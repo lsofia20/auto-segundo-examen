@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0201" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:ns1="http://www.plcopen.org/xml/tc6_0201">
   <fileHeader companyName="Desconocido" productName="Sin nombre" productVersion="1" creationDateTime="2024-04-04T13:22:05"/>
-  <contentHeader name="Sin nombre" modificationDateTime="2024-04-04T22:09:26">
+  <contentHeader name="Sin nombre" modificationDateTime="2024-04-09T02:45:14">
     <coordinateInfo>
       <fbd>
         <scaling x="10" y="10"/>
@@ -19,80 +19,122 @@
     <pous>
       <pou name="program0" pouType="program">
         <interface>
-          <inputVars>
-            <variable name="boton_inicio">
-              <type>
-                <BOOL/>
-              </type>
-            </variable>
-            <variable name="boton_parada">
-              <type>
-                <BOOL/>
-              </type>
-            </variable>
-            <variable name="sensor_caja">
-              <type>
-                <BOOL/>
-              </type>
-            </variable>
-          </inputVars>
-          <outputVars>
-            <variable name="motor_cinta">
-              <type>
-                <BOOL/>
-              </type>
-            </variable>
-            <variable name="motor_rodillo">
-              <type>
-                <BOOL/>
-              </type>
-            </variable>
-          </outputVars>
           <localVars>
-            <variable name="ciclo">
+            <variable name="boton_inicio" address="%IX0.0">
               <type>
                 <BOOL/>
               </type>
+              <documentation>
+                <xhtml:p><![CDATA[El boton de inicio]]></xhtml:p>
+              </documentation>
             </variable>
+            <variable name="boton_parada" address="%IX0.1">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[El boton para detener todo]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="sensor_caja" address="%IW0">
+              <type>
+                <WORD/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Entrada con el sensor analogo]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="motor_cinta" address="%QX0.0">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Motor para la cinta transportadora]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="motor_rodillo" address="%QX0.1">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Motor para activar el rodillo]]></xhtml:p>
+              </documentation>
+            </variable>
+          </localVars>
+          <localVars>
             <variable name="auxiliar_inicio">
               <type>
                 <BOOL/>
               </type>
+              <documentation>
+                <xhtml:p><![CDATA[Variable auxiliar para almacenar si se presiono el boton de inicio]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="auxiliar_sensor">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Variable auxiliar para determinar si el sensor esta detectando la caja]]></xhtml:p>
+              </documentation>
             </variable>
             <variable name="auxiliar_reloj">
               <type>
                 <BOOL/>
               </type>
+              <documentation>
+                <xhtml:p><![CDATA[Variable auxiliar para determinar si el reloj esta contando]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="sensor_esta_conectado">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Comprobacion de que el sensor esta funcionando]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="sensor_tapado">
+              <type>
+                <BOOL/>
+              </type>
+              <documentation>
+                <xhtml:p><![CDATA[Comprobacion de que el sensor esta siendo tapado]]></xhtml:p>
+              </documentation>
             </variable>
           </localVars>
           <localVars constant="true">
-            <variable name="max_tiempo">
+            <variable name="min_luz">
+              <type>
+                <WORD/>
+              </type>
+              <initialValue>
+                <simpleValue value="3500"/>
+              </initialValue>
+              <documentation>
+                <xhtml:p><![CDATA[Minimo de luz requerida para saber si el sensor esta siendo tapado o no]]></xhtml:p>
+              </documentation>
+            </variable>
+            <variable name="max_tiempo_rodillo">
               <type>
                 <TIME/>
               </type>
               <initialValue>
-                <simpleValue value="T#1000ms"/>
+                <simpleValue value="T#500ms"/>
               </initialValue>
-            </variable>
-            <variable name="max_ciclos">
-              <type>
-                <INT/>
-              </type>
-              <initialValue>
-                <simpleValue value="1"/>
-              </initialValue>
+              <documentation>
+                <xhtml:p><![CDATA[Maxima cantidad de tiempo por la que el motor del rodillo esta activo]]></xhtml:p>
+              </documentation>
             </variable>
           </localVars>
           <localVars>
-            <variable name="contador">
-              <type>
-                <derived name="CTU"/>
-              </type>
-            </variable>
             <variable name="reloj">
               <type>
-                <derived name="TON"/>
+                <derived name="TOF"/>
               </type>
+              <documentation>
+                <xhtml:p><![CDATA[Funcion de reloj]]></xhtml:p>
+              </documentation>
             </variable>
           </localVars>
         </interface>
@@ -163,25 +205,11 @@
               </connectionPointIn>
             </rightPowerRail>
             <leftPowerRail localId="20" width="10" height="40">
-              <position x="80" y="290"/>
+              <position x="80" y="510"/>
               <connectionPointOut formalParameter="">
                 <relPosition x="10" y="20"/>
               </connectionPointOut>
             </leftPowerRail>
-            <coil localId="21" negated="false" width="21" height="20">
-              <position x="720" y="300"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="23">
-                  <position x="720" y="310"/>
-                  <position x="611" y="310"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>motor_rodillo</variable>
-            </coil>
             <contact localId="22" negated="false" width="21" height="20">
               <position x="220" y="90"/>
               <connectionPointIn>
@@ -199,35 +227,35 @@
               <variable>auxiliar_inicio</variable>
             </contact>
             <rightPowerRail localId="2" width="10" height="40" executionOrderId="0">
-              <position x="810" y="290"/>
+              <position x="810" y="510"/>
               <connectionPointIn>
                 <relPosition x="0" y="20"/>
-                <connection refLocalId="21">
-                  <position x="810" y="310"/>
-                  <position x="741" y="310"/>
+                <connection refLocalId="6">
+                  <position x="810" y="530"/>
+                  <position x="740" y="530"/>
                 </connection>
               </connectionPointIn>
             </rightPowerRail>
             <contact localId="23" negated="false" width="21" height="20">
-              <position x="590" y="300"/>
+              <position x="380" y="610"/>
               <connectionPointIn>
                 <relPosition x="0" y="10"/>
-                <connection refLocalId="6">
-                  <position x="590" y="310"/>
-                  <position x="461" y="310"/>
+                <connection refLocalId="34">
+                  <position x="380" y="620"/>
+                  <position x="201" y="620"/>
                 </connection>
               </connectionPointIn>
               <connectionPointOut>
                 <relPosition x="21" y="10"/>
               </connectionPointOut>
-              <variable>auxiliar_inicio</variable>
+              <variable>auxiliar_reloj</variable>
             </contact>
-            <inVariable localId="4" width="90" height="30" negated="false" executionOrderId="0">
-              <position x="250" y="390"/>
+            <inVariable localId="4" width="154" height="30" negated="false" executionOrderId="0">
+              <position x="380" y="710"/>
               <connectionPointOut>
-                <relPosition x="90" y="20"/>
+                <relPosition x="154" y="10"/>
               </connectionPointOut>
-              <expression>max_tiempo</expression>
+              <expression>max_tiempo_rodillo</expression>
             </inVariable>
             <leftPowerRail localId="5" width="10" height="40" executionOrderId="0">
               <position x="80" y="150"/>
@@ -235,57 +263,23 @@
                 <relPosition x="10" y="20"/>
               </connectionPointOut>
             </leftPowerRail>
-            <contact localId="28" negated="true" width="21" height="20">
-              <position x="220" y="160"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="5">
-                  <position x="220" y="170"/>
-                  <position x="90" y="170"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>sensor_caja</variable>
-            </contact>
-            <coil localId="29" negated="false" width="21" height="20">
-              <position x="720" y="160"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="10">
-                  <position x="720" y="170"/>
-                  <position x="511" y="170"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>motor_cinta</variable>
-            </coil>
             <rightPowerRail localId="9" width="10" height="40" executionOrderId="0">
               <position x="810" y="150"/>
               <connectionPointIn>
                 <relPosition x="0" y="20"/>
-                <connection refLocalId="29">
+                <connection refLocalId="47" formalParameter="ENO">
                   <position x="810" y="170"/>
-                  <position x="741" y="170"/>
+                  <position x="430" y="170"/>
                 </connection>
               </connectionPointIn>
             </rightPowerRail>
-            <contact localId="10" negated="false" width="21" height="20" executionOrderId="0">
-              <position x="490" y="160"/>
+            <contact localId="32" negated="false" width="21" height="20">
+              <position x="180" y="520"/>
               <connectionPointIn>
                 <relPosition x="0" y="10"/>
-                <connection refLocalId="28">
-                  <position x="490" y="170"/>
-                  <position x="241" y="170"/>
-                </connection>
-                <connection refLocalId="42">
-                  <position x="490" y="170"/>
-                  <position x="350" y="170"/>
-                  <position x="350" y="230"/>
-                  <position x="301" y="230"/>
+                <connection refLocalId="20">
+                  <position x="180" y="530"/>
+                  <position x="90" y="530"/>
                 </connection>
               </connectionPointIn>
               <connectionPointOut>
@@ -293,191 +287,15 @@
               </connectionPointOut>
               <variable>auxiliar_inicio</variable>
             </contact>
-            <contact localId="32" negated="false" width="21" height="20">
-              <position x="150" y="300"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="20">
-                  <position x="150" y="310"/>
-                  <position x="90" y="310"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>sensor_caja</variable>
-            </contact>
-            <contact localId="34" negated="true" width="21" height="20">
-              <position x="260" y="300"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="32">
-                  <position x="260" y="310"/>
-                  <position x="171" y="310"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>motor_cinta</variable>
-            </contact>
-            <block localId="35" typeName="CTU" instanceName="contador" width="50" height="80">
-              <position x="430" y="460"/>
-              <inputVariables>
-                <variable formalParameter="CU" edge="rising">
-                  <connectionPointIn>
-                    <relPosition x="0" y="30"/>
-                    <connection refLocalId="39">
-                      <position x="430" y="490"/>
-                      <position x="211" y="490"/>
-                    </connection>
-                  </connectionPointIn>
-                </variable>
-                <variable formalParameter="R">
-                  <connectionPointIn>
-                    <relPosition x="0" y="50"/>
-                    <connection refLocalId="11">
-                      <position x="430" y="510"/>
-                      <position x="321" y="510"/>
-                      <position x="321" y="540"/>
-                      <position x="211" y="540"/>
-                    </connection>
-                  </connectionPointIn>
-                </variable>
-                <variable formalParameter="PV">
-                  <connectionPointIn>
-                    <relPosition x="0" y="70"/>
-                    <connection refLocalId="36">
-                      <position x="430" y="530"/>
-                      <position x="360" y="530"/>
-                      <position x="360" y="600"/>
-                      <position x="330" y="600"/>
-                    </connection>
-                  </connectionPointIn>
-                </variable>
-              </inputVariables>
-              <inOutVariables/>
-              <outputVariables>
-                <variable formalParameter="Q">
-                  <connectionPointOut>
-                    <relPosition x="50" y="30"/>
-                  </connectionPointOut>
-                </variable>
-                <variable formalParameter="CV">
-                  <connectionPointOut>
-                    <relPosition x="50" y="50"/>
-                  </connectionPointOut>
-                </variable>
-              </outputVariables>
-            </block>
-            <inVariable localId="36" width="130" height="30" negated="false">
-              <position x="200" y="580"/>
-              <connectionPointOut>
-                <relPosition x="130" y="20"/>
-              </connectionPointOut>
-              <expression>max_ciclos</expression>
-            </inVariable>
-            <rightPowerRail localId="12" width="10" height="40" executionOrderId="0">
-              <position x="810" y="470"/>
-              <connectionPointIn>
-                <relPosition x="0" y="20"/>
-                <connection refLocalId="37">
-                  <position x="810" y="490"/>
-                  <position x="741" y="490"/>
-                </connection>
-              </connectionPointIn>
-            </rightPowerRail>
-            <coil localId="37" negated="false" width="21" height="20">
-              <position x="720" y="480"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="35" formalParameter="Q">
-                  <position x="720" y="490"/>
-                  <position x="480" y="490"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>ciclo</variable>
-            </coil>
-            <contact localId="11" negated="true" width="21" height="20" executionOrderId="0">
-              <position x="190" y="530"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="13">
-                  <position x="190" y="540"/>
-                  <position x="110" y="540"/>
-                  <position x="110" y="490"/>
-                  <position x="90" y="490"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>sensor_caja</variable>
-            </contact>
-            <leftPowerRail localId="13" width="10" height="40" executionOrderId="0">
-              <position x="80" y="470"/>
-              <connectionPointOut formalParameter="">
-                <relPosition x="10" y="20"/>
-              </connectionPointOut>
-            </leftPowerRail>
-            <contact localId="39" negated="false" width="21" height="20" edge="falling">
-              <position x="190" y="480"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="13">
-                  <position x="190" y="490"/>
-                  <position x="90" y="490"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>motor_rodillo</variable>
-            </contact>
-            <contact localId="42" negated="true" width="21" height="20">
-              <position x="280" y="220"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="43">
-                  <position x="280" y="230"/>
-                  <position x="191" y="230"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>motor_rodillo</variable>
-            </contact>
-            <contact localId="43" negated="false" width="21" height="20">
-              <position x="170" y="220"/>
-              <connectionPointIn>
-                <relPosition x="0" y="10"/>
-                <connection refLocalId="5">
-                  <position x="170" y="230"/>
-                  <position x="130" y="230"/>
-                  <position x="130" y="170"/>
-                  <position x="90" y="170"/>
-                </connection>
-              </connectionPointIn>
-              <connectionPointOut>
-                <relPosition x="21" y="10"/>
-              </connectionPointOut>
-              <variable>ciclo</variable>
-            </contact>
-            <block localId="45" typeName="TON" instanceName="reloj" width="50" height="60">
-              <position x="430" y="360"/>
+            <block localId="45" typeName="TOF" instanceName="reloj" width="50" height="60">
+              <position x="580" y="660"/>
               <inputVariables>
                 <variable formalParameter="IN">
                   <connectionPointIn>
                     <relPosition x="0" y="30"/>
-                    <connection refLocalId="34">
-                      <position x="430" y="390"/>
-                      <position x="360" y="390"/>
-                      <position x="360" y="310"/>
-                      <position x="281" y="310"/>
+                    <connection refLocalId="31">
+                      <position x="580" y="690"/>
+                      <position x="401" y="690"/>
                     </connection>
                   </connectionPointIn>
                 </variable>
@@ -485,8 +303,10 @@
                   <connectionPointIn>
                     <relPosition x="0" y="50"/>
                     <connection refLocalId="4">
-                      <position x="430" y="410"/>
-                      <position x="340" y="410"/>
+                      <position x="580" y="710"/>
+                      <position x="557" y="710"/>
+                      <position x="557" y="720"/>
+                      <position x="534" y="720"/>
                     </connection>
                   </connectionPointIn>
                 </variable>
@@ -506,12 +326,12 @@
               </outputVariables>
             </block>
             <coil localId="1" negated="false" width="21" height="20" executionOrderId="0">
-              <position x="720" y="380"/>
+              <position x="720" y="680"/>
               <connectionPointIn>
                 <relPosition x="0" y="10"/>
                 <connection refLocalId="45" formalParameter="Q">
-                  <position x="720" y="390"/>
-                  <position x="480" y="390"/>
+                  <position x="720" y="690"/>
+                  <position x="630" y="690"/>
                 </connection>
               </connectionPointIn>
               <connectionPointOut>
@@ -520,29 +340,378 @@
               <variable>auxiliar_reloj</variable>
             </coil>
             <rightPowerRail localId="3" width="10" height="40" executionOrderId="0">
-              <position x="810" y="370"/>
+              <position x="810" y="670"/>
               <connectionPointIn>
                 <relPosition x="0" y="20"/>
                 <connection refLocalId="1">
-                  <position x="810" y="390"/>
-                  <position x="741" y="390"/>
+                  <position x="810" y="690"/>
+                  <position x="741" y="690"/>
                 </connection>
               </connectionPointIn>
             </rightPowerRail>
-            <contact localId="6" negated="true" width="21" height="20" executionOrderId="0">
-              <position x="440" y="300"/>
+            <block localId="47" typeName="GT" width="70" height="80">
+              <position x="360" y="140"/>
+              <inputVariables>
+                <variable formalParameter="EN">
+                  <connectionPointIn>
+                    <relPosition x="0" y="30"/>
+                    <connection refLocalId="8">
+                      <position x="360" y="170"/>
+                      <position x="181" y="170"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+                <variable formalParameter="IN1">
+                  <connectionPointIn>
+                    <relPosition x="0" y="50"/>
+                    <connection refLocalId="49">
+                      <position x="360" y="190"/>
+                      <position x="320" y="190"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+                <variable formalParameter="IN2">
+                  <connectionPointIn>
+                    <relPosition x="0" y="70"/>
+                    <connection refLocalId="48">
+                      <position x="360" y="210"/>
+                      <position x="340" y="210"/>
+                      <position x="340" y="240"/>
+                      <position x="320" y="240"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+              </inputVariables>
+              <inOutVariables/>
+              <outputVariables>
+                <variable formalParameter="ENO">
+                  <connectionPointOut>
+                    <relPosition x="70" y="30"/>
+                  </connectionPointOut>
+                </variable>
+                <variable formalParameter="OUT">
+                  <connectionPointOut>
+                    <relPosition x="70" y="50"/>
+                  </connectionPointOut>
+                </variable>
+              </outputVariables>
+            </block>
+            <contact localId="8" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="160" y="160"/>
               <connectionPointIn>
                 <relPosition x="0" y="10"/>
-                <connection refLocalId="34">
-                  <position x="440" y="310"/>
-                  <position x="281" y="310"/>
+                <connection refLocalId="5">
+                  <position x="160" y="170"/>
+                  <position x="90" y="170"/>
                 </connection>
               </connectionPointIn>
               <connectionPointOut>
                 <relPosition x="21" y="10"/>
               </connectionPointOut>
-              <variable>auxiliar_reloj</variable>
+              <variable>auxiliar_inicio</variable>
             </contact>
+            <inVariable localId="48" width="20" height="30" negated="false">
+              <position x="300" y="220"/>
+              <connectionPointOut>
+                <relPosition x="20" y="20"/>
+              </connectionPointOut>
+              <expression>0</expression>
+            </inVariable>
+            <inVariable localId="49" width="100" height="30" negated="false">
+              <position x="220" y="180"/>
+              <connectionPointOut>
+                <relPosition x="100" y="10"/>
+              </connectionPointOut>
+              <expression>sensor_caja</expression>
+            </inVariable>
+            <outVariable localId="50" width="178" height="30" negated="false">
+              <position x="480" y="190"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="47" formalParameter="OUT">
+                  <position x="480" y="200"/>
+                  <position x="460" y="200"/>
+                  <position x="460" y="190"/>
+                  <position x="430" y="190"/>
+                </connection>
+              </connectionPointIn>
+              <expression>sensor_esta_conectado</expression>
+            </outVariable>
+            <leftPowerRail localId="10" width="10" height="40" executionOrderId="0">
+              <position x="80" y="270"/>
+              <connectionPointOut formalParameter="">
+                <relPosition x="10" y="20"/>
+              </connectionPointOut>
+            </leftPowerRail>
+            <rightPowerRail localId="24" width="10" height="40" executionOrderId="0">
+              <position x="810" y="270"/>
+              <connectionPointIn>
+                <relPosition x="0" y="20"/>
+                <connection refLocalId="25" formalParameter="ENO">
+                  <position x="810" y="290"/>
+                  <position x="430" y="290"/>
+                </connection>
+              </connectionPointIn>
+            </rightPowerRail>
+            <block localId="25" typeName="LT" width="70" height="80" executionOrderId="0">
+              <position x="360" y="260"/>
+              <inputVariables>
+                <variable formalParameter="EN">
+                  <connectionPointIn>
+                    <relPosition x="0" y="30"/>
+                    <connection refLocalId="26">
+                      <position x="360" y="290"/>
+                      <position x="181" y="290"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+                <variable formalParameter="IN1">
+                  <connectionPointIn>
+                    <relPosition x="0" y="50"/>
+                    <connection refLocalId="27">
+                      <position x="360" y="310"/>
+                      <position x="340" y="310"/>
+                      <position x="340" y="320"/>
+                      <position x="320" y="320"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+                <variable formalParameter="IN2">
+                  <connectionPointIn>
+                    <relPosition x="0" y="70"/>
+                    <connection refLocalId="29">
+                      <position x="360" y="330"/>
+                      <position x="340" y="330"/>
+                      <position x="340" y="360"/>
+                      <position x="320" y="360"/>
+                    </connection>
+                  </connectionPointIn>
+                </variable>
+              </inputVariables>
+              <inOutVariables/>
+              <outputVariables>
+                <variable formalParameter="ENO">
+                  <connectionPointOut>
+                    <relPosition x="70" y="30"/>
+                  </connectionPointOut>
+                </variable>
+                <variable formalParameter="OUT">
+                  <connectionPointOut>
+                    <relPosition x="70" y="50"/>
+                  </connectionPointOut>
+                </variable>
+              </outputVariables>
+            </block>
+            <contact localId="26" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="160" y="280"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="10">
+                  <position x="160" y="290"/>
+                  <position x="90" y="290"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>auxiliar_inicio</variable>
+            </contact>
+            <inVariable localId="27" width="100" height="30" negated="false" executionOrderId="0">
+              <position x="220" y="300"/>
+              <connectionPointOut>
+                <relPosition x="100" y="10"/>
+              </connectionPointOut>
+              <expression>sensor_caja</expression>
+            </inVariable>
+            <outVariable localId="28" width="150" height="30" negated="false" executionOrderId="0">
+              <position x="480" y="310"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="25" formalParameter="OUT">
+                  <position x="480" y="320"/>
+                  <position x="460" y="320"/>
+                  <position x="460" y="310"/>
+                  <position x="430" y="310"/>
+                </connection>
+              </connectionPointIn>
+              <expression>sensor_tapado</expression>
+            </outVariable>
+            <inVariable localId="29" width="70" height="30" negated="false" executionOrderId="0">
+              <position x="250" y="340"/>
+              <connectionPointOut>
+                <relPosition x="70" y="20"/>
+              </connectionPointOut>
+              <expression>min_luz</expression>
+            </inVariable>
+            <leftPowerRail localId="11" width="10" height="40" executionOrderId="0">
+              <position x="80" y="400"/>
+              <connectionPointOut formalParameter="">
+                <relPosition x="10" y="20"/>
+              </connectionPointOut>
+            </leftPowerRail>
+            <rightPowerRail localId="12" width="10" height="40" executionOrderId="0">
+              <position x="810" y="400"/>
+              <connectionPointIn>
+                <relPosition x="0" y="20"/>
+                <connection refLocalId="15">
+                  <position x="810" y="420"/>
+                  <position x="730" y="420"/>
+                </connection>
+              </connectionPointIn>
+            </rightPowerRail>
+            <contact localId="14" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="200" y="410"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="11">
+                  <position x="200" y="420"/>
+                  <position x="90" y="420"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>sensor_esta_conectado</variable>
+            </contact>
+            <contact localId="13" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="370" y="410"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="14">
+                  <position x="370" y="420"/>
+                  <position x="221" y="420"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>sensor_tapado</variable>
+            </contact>
+            <coil localId="15" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="710" y="410"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="13">
+                  <position x="710" y="420"/>
+                  <position x="391" y="420"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>auxiliar_sensor</variable>
+            </coil>
+            <coil localId="6" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="720" y="520"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="32">
+                  <position x="720" y="530"/>
+                  <position x="201" y="530"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>motor_cinta</variable>
+            </coil>
+            <coil localId="30" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="720" y="610"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="23">
+                  <position x="720" y="620"/>
+                  <position x="401" y="620"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>motor_rodillo</variable>
+            </coil>
+            <rightPowerRail localId="21" width="10" height="40" executionOrderId="0">
+              <position x="810" y="600"/>
+              <connectionPointIn>
+                <relPosition x="0" y="20"/>
+                <connection refLocalId="30">
+                  <position x="810" y="620"/>
+                  <position x="741" y="620"/>
+                </connection>
+              </connectionPointIn>
+            </rightPowerRail>
+            <contact localId="31" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="380" y="680"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="34">
+                  <position x="380" y="690"/>
+                  <position x="290" y="690"/>
+                  <position x="290" y="620"/>
+                  <position x="201" y="620"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>auxiliar_sensor</variable>
+            </contact>
+            <leftPowerRail localId="33" width="10" height="40" executionOrderId="0">
+              <position x="80" y="600"/>
+              <connectionPointOut formalParameter="">
+                <relPosition x="10" y="20"/>
+              </connectionPointOut>
+            </leftPowerRail>
+            <contact localId="34" negated="false" width="21" height="20" executionOrderId="0">
+              <position x="180" y="610"/>
+              <connectionPointIn>
+                <relPosition x="0" y="10"/>
+                <connection refLocalId="33">
+                  <position x="180" y="620"/>
+                  <position x="90" y="620"/>
+                </connection>
+              </connectionPointIn>
+              <connectionPointOut>
+                <relPosition x="21" y="10"/>
+              </connectionPointOut>
+              <variable>auxiliar_inicio</variable>
+            </contact>
+            <comment localId="51" height="40" width="180">
+              <position x="870" y="30"/>
+              <content>
+                <xhtml:p><![CDATA[Inicio del sistema]]></xhtml:p>
+              </content>
+            </comment>
+            <comment localId="35" height="60" width="210">
+              <position x="870" y="150"/>
+              <content>
+                <xhtml:p><![CDATA[Comprobacion de que el sensor esta conectado]]></xhtml:p>
+              </content>
+            </comment>
+            <comment localId="36" height="70" width="230">
+              <position x="870" y="270"/>
+              <content>
+                <xhtml:p><![CDATA[Comprobacion de que el sensor esta siendo tapado
+]]></xhtml:p>
+              </content>
+            </comment>
+            <comment localId="37" height="90" width="260">
+              <position x="870" y="400"/>
+              <content>
+                <xhtml:p><![CDATA[Se activa la variable si el sensor esta siendo tapado pero esta conectado]]></xhtml:p>
+              </content>
+            </comment>
+            <comment localId="38" height="60" width="240">
+              <position x="870" y="510"/>
+              <content>
+                <xhtml:p><![CDATA[La cinta siempre esta activa]]></xhtml:p>
+              </content>
+            </comment>
+            <comment localId="39" height="80" width="260">
+              <position x="870" y="600"/>
+              <content>
+                <xhtml:p><![CDATA[Activar el rodillo por una cantidad de tiempo predefinido]]></xhtml:p>
+              </content>
+            </comment>
           </LD>
         </body>
       </pou>
